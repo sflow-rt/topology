@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" type="image/png" href="../../../inc/img/favicon.png">
+    <link rel="stylesheet" href="../../../inc/bootstrap.min.css">
+    <link rel="stylesheet" href="../../../inc/gauge.css">
+    <link rel="stylesheet" href="css/app.css">
+    <script type="text/javascript" src="../../../inc/jquery.min.js"></script>
+    <script type="text/javascript" src="../../../inc/jquery.widget.js"></script>
+    <script type="text/javascript" src="../../../inc/jquery.gauge.js"></script>
+    <script type="text/javascript" src="../../../inc/popper.min.js"></script>
+    <script type="text/javascript" src="../../../inc/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+    <title>Topology</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm navbar-dark mb-3" style="background-color: #336;">
+      <a class="navbar-brand" href="#">
+        <img src="../../../inc/img/inmon.svg" height="30" class="d-inline-block align-top">
+        Topology
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
+            <a class="nav-link" href="#" data-target="status">Status</a>
+          </li>
+          <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
+            <a class="nav-link" href="#" data-target="query">Locate</a>
+          </li>
+          <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
+            <a class="nav-link" href="#" data-target="settings">Settings</a>
+          </li>
+          <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
+            <a class="nav-link" href="#" data-target="help">Help</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <main class="container" role="main">
+      <section id="status">
+        <div class="row align-items-center">
+           <div class="col-md"><div id="nodes-total"></div></div>
+           <div class="col-md"><div id="nodes-unmonitored"></div></div>
+           <div class="col-md"><div id="nodes-no-flows"></div></div>
+        </div>
+        <div class="row align-items-center">
+           <div class="col-md"><div id="links-total"></div></div>
+           <div class="col-md"><div id="links-unmonitored"></div></div>
+           <div class="col-md"><div id="links-down"></div></div>
+        </div>
+      </section>
+      <section id="query">
+        <form id="locateForm">
+          <div class="form-row">
+            <div class="col-sm-10 mb-3">
+              <input type="text" class="typeahead form-control" id="networkAddress" placeholder="Enter network address">
+              <div class="invalid-feedback">Cannot locate address</div>
+            </div>
+            <div class="col-sm-2 mb-3">
+              <button id="submit" type="submit" class="btn btn-primary btn-block">Submit</button>
+            </div>
+          </div>
+        </form>
+        <div class="text-nowrap table-responsive" id="location">
+          <table class="table table-sm table-striped table-bordered">
+            <thead class="thead-light">
+              <tr><th>Node</th><th>Port</th><th>Agent</th><th>ifIndex</th><th>MAC</th></tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section id="settings">
+        <div class="custom-file mb-3">
+          <input type="file" class="custom-file-input" id="topologyFile" accept="application/json">
+          <label class="custom-file-label" for="topologyFile">Choose topology file</label>
+          <div class="invalid-feedback">Bad topology file</div>
+          <div class="valid-feedback">Topology loaded</div> 
+        </div>
+        <p>Use above form to upload topology file.</p>
+        <p>Alternatively, post topology using <a href="../../../api/index.html#/topology/put_topology_json">REST API</a>.</p>
+        <pre class="bg-light"><code>curl -X PUT -H &quot;Content-Type: application/json&quot; -d @topology.json http://localhost:8008/topology/json</code></pre>
+        <p>For example, the above command uses curl to post a topology file.</p>
+      </section>
+      <section id="help">
+        <p>This application stores <a href="https://sflow-rt.com/topology.php">topology</a> so that it persists over sFlow-RT restarts.
+        The <em>Status</em> dashboard is used to verify that telemetry is being received from all the links and nodes in the topology.
+        The <em>Locate</em> query can be used to find the switch port connecting edge devices to the network.</p>
+        <h4>Status</h4>
+        <p>The following metrics are displayed:</p>
+        <ul>
+          <li><strong>Nodes Total</strong> The number of nodes in the currently loaded topology</li>
+          <li><strong>Nodes Unmonitored</strong> The number of nodes that aren't sending telemetry</li>
+          <li><strong>Nodes No Flows</strong> The number of nodes that aren't sending flow data</li>
+          <li><strong>Links Total</strong> The number of links in the currently loaded topology</li>
+          <li><strong>Links Unmonitored</strong> The number of links with incomplete telemetry</li>
+          <li><strong>Links Down</strong> The number of links where the status is &quot;down&quot;</li>
+        </ul>
+        <h4>Locate</h4>
+        <p>Enter a MAC address, IPv4 address, or IPv6 address and locate the address to an access switch and port.</p>
+        <h4>Settings</h4>
+        <p>Upload a topology file. <a href="https://sflow-rt.com/topology.php">Topology</a> describes the format used to represent topology.</p>
+      </section>
+    </main>
+    <footer class="footer page-footer border-top mt-3">
+       <div class="footer-copyright text-center py-2">
+         <small class="text-muted">Copyright &copy; 2021 InMon Corp. ALL RIGHTS RESERVED</small>
+       </div>
+    </footer>
+  </body>
+</html>
