@@ -1,4 +1,6 @@
-# Persist topology
+# Topology
+
+Persist topology and verify topology. Locate addresses.
 
 ## To install
 
