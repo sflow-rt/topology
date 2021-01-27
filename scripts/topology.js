@@ -15,16 +15,16 @@ function getVersion() {
   return version;
 }
 
-function updateTopology(top) {
+function updateTopology(top,save) {
   if(top && setTopology(top)) {
-    storeSet('topology', getTopology());
+    if(save) storeSet('topology', getTopology());
     setVersion(topologyVersion());
     return true;
   }
   return false;
 }
 
-updateTopology(storeGet('topology'));
+updateTopology(storeGet('topology'),false);
 
 setIntervalHandler(function(now) {
   var currentVersion = topologyVersion();
@@ -105,7 +105,7 @@ setHttpHandler(function(req) {
         case 'POST':
         case 'PUT':
           if(req.error) throw "bad_request";
-          if(!updateTopology(req.body)) throw "bad_request";
+          if(!updateTopology(req.body,true)) throw "bad_request";
           break;
         case 'GET':
           result = getTopology();
