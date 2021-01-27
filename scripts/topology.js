@@ -17,6 +17,7 @@ function getVersion() {
 
 function updateTopology(top) {
   if(top && setTopology(top)) {
+    storeSet('topology', getTopology());
     setVersion(topologyVersion());
     return true;
   }
