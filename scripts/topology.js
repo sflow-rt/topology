@@ -1,8 +1,8 @@
 // author: InMon Corp.
-// version: 1.0
-// date: 1/22/2021
+// version: 1.1
+// date: 4/24/2023
 // description: Persist Topology
-// copyright: Copyright (c) 2021 InMon Corp. ALL RIGHTS RESERVED
+// copyright: Copyright (c) 2021-2023 InMon Corp. ALL RIGHTS RESERVED
 
 var version = -1;
 
@@ -41,14 +41,22 @@ function getMetrics() {
   result.links.monitored = 0;
   result.links.up = 0;
   result.links.down = 0;
+  result.links.details = {unmonitored:[],links_down:[]};
   links.forEach(function(key) {
     let link_metrics = topologyLinkMetric(key,'ifadminstatus,ifoperstatus');
     if(link_metrics && link_metrics.length === 4) {
       if(link_metrics[0].agent && link_metrics[1].agent && link_metrics[2].agent && link_metrics[3].agent) {
         result.links.monitored++; 
         if('up' === link_metrics[0].metricValue && 'up' === link_metrics[1].metricValue && 'up' === link_metrics[2].metricValue && 'up' === link_metrics[3].metricValue) result.links.up++;
-        else result.links.down++;
+        else {
+          result.links.down++;
+          result.links.details.down.push(key);
+        }
+      } else {
+        result.links.details.unmonitored.push(key);
       }
+    } else {
+      result.links.details.unmonitored.push(key);
     }
   });
   result.links.total = links.length;
@@ -57,6 +65,7 @@ function getMetrics() {
   result.nodes.monitored = 0;
   result.nodes.flows = 0;
   result.nodes.noflows = 0;
+  result.nodes.details = {unmonitored:[],noflows:[]};
   nodes.forEach(function(key) {
     let agent = topologyAgentForNode(key);
     if(agent) {
@@ -64,8 +73,15 @@ function getMetrics() {
       if(agentMetrics) {
         result.nodes.monitored++;
         if(agentMetrics.sFlowFlowSamples) result.nodes.flows++;
-        else result.nodes.noflows++;
+        else {
+          result.nodes.noflows++;
+          result.nodes.details.noflows.push(key);   
+        }
+      } else {
+        result.nodes.details.unmonitored.push(key);
       }
+    } else {
+      result.nodes.details.unmonitored.push(key);
     }
   });
   
@@ -113,9 +129,6 @@ setHttpHandler(function(req) {
         default:
           throw "bad_request";
       }
-      break;
-    case 'version':
-      result = getVersion();
       break;
     case 'metrics':
       result = getMetrics();

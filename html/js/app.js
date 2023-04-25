@@ -25,20 +25,30 @@ $(function() {
     e.preventDefault();
   });
 
+  function details() {
+    var $this = $(this);
+    var details = $this.data('details');
+    if(details && details.length) {
+      var dialog = $('#details-dialog');
+      dialog.find('.modal-title').html($this.find('.title').html());
+      dialog.find('.modal-body').html(details);
+      dialog.modal('show');
+    }
+  }
   var m_nodes_total = $('#nodes-total').gauge({label:'Nodes Total', suffix: '', threshold: 4000, maxValue: 5000, logScale:true });
-  var m_nodes_unmonitored = $('#nodes-unmonitored').gauge({label:'Nodes Unmonitored', suffix: '', threshold: 1, maxValue: 1});
-  var m_nodes_no_flows = $('#nodes-no-flows').gauge({label:'Nodes No Flows', suffix: '', threshold: 1, maxValue: 1});
+  var m_nodes_unmonitored = $('#nodes-unmonitored').gauge({label:'Nodes Unmonitored', suffix: '', threshold: 1, maxValue: 1}).click(details);
+  var m_nodes_no_flows = $('#nodes-no-flows').gauge({label:'Nodes No Flows', suffix: '', threshold: 1, maxValue: 1}).click(details);
   var m_links_total = $('#links-total').gauge({label:'Links Total', suffix: '', threshold: 8000, maxValue: 10000, logScale: true});
-  var m_links_unmonitored = $('#links-unmonitored').gauge({label:'Links Unmonitored', suffix: '', threshold: 1, maxValue: 1});
-  var m_links_down = $('#links-down').gauge({label:'Links Down', suffix: '', threshold: 1, maxValue: 1});
+  var m_links_unmonitored = $('#links-unmonitored').gauge({label:'Links Unmonitored', suffix: '', threshold: 1, maxValue: 1}).click(details);
+  var m_links_down = $('#links-down').gauge({label:'Links Down', suffix: '', threshold: 1, maxValue: 1}).click(details);
 
   function updateMetrics(metrics) {
     m_nodes_total.gauge('update', {value: metrics.nodes.total});
-    m_nodes_unmonitored.gauge('update', {value: metrics.nodes.total - metrics.nodes.monitored, maxValue: metrics.nodes.total});
-    m_nodes_no_flows.gauge('update', {value: metrics.nodes.noflows, maxValue: metrics.nodes.total});
+    m_nodes_unmonitored.gauge('update', {value: metrics.nodes.total - metrics.nodes.monitored, maxValue: metrics.nodes.total}).data('details',metrics.nodes.details.unmonitored);
+    m_nodes_no_flows.gauge('update', {value: metrics.nodes.noflows, maxValue: metrics.nodes.total}).data('details',metrics.nodes.details.noflows);
     m_links_total.gauge('update', {value: metrics.links.total});
-    m_links_unmonitored.gauge('update', {value: metrics.links.total - metrics.links.monitored, maxValue: metrics.links.total});
-    m_links_down.gauge('update', {value: metrics.links.down, maxValue: metrics.links.total});
+    m_links_unmonitored.gauge('update', {value: metrics.links.total - metrics.links.monitored, maxValue: metrics.links.total}).data('details',metrics.links.details.unmonitored);
+    m_links_down.gauge('update', {value: metrics.links.down, maxValue: metrics.links.total}).data('details',metrics.links.details.down);
   }
 
   $('#locateForm').submit(function( event ) {
