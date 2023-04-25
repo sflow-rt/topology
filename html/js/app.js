@@ -31,7 +31,7 @@ $(function() {
     if(details && details.length) {
       var dialog = $('#details-dialog');
       dialog.find('.modal-title').html($this.find('.title').html());
-      dialog.find('.modal-body').html(details);
+      dialog.find('.modal-body').html(details.join(', '));
       dialog.modal('show');
     }
   }
