@@ -1,7 +1,6 @@
 $(function() {
   var restPath = '../scripts/topology.js/';
   var topologyURL = restPath + 'topology/json';
-  var versionURL = restPath + 'version/json';
   var metricsURL = restPath + 'metrics/json';
   var locateURL = restPath + 'locate/json';
 
