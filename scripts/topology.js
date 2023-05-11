@@ -1,6 +1,6 @@
 // author: InMon Corp.
-// version: 1.1
-// date: 4/24/2023
+// version: 1.2
+// date: 5/11/2023
 // description: Persist Topology
 // copyright: Copyright (c) 2021-2023 InMon Corp. ALL RIGHTS RESERVED
 
@@ -34,7 +34,7 @@ setIntervalHandler(function(now) {
   }
 });
 
-function getMetrics() {
+function getStatus() {
   var result = {links:{},nodes:{}};
   var links = topologyLinkNames() || [];
   result.links.total = links.length;
@@ -111,6 +111,26 @@ function locateAddress(addr) {
   return [];
 }
 
+function getNodeMetric(agent,metricName,query) {
+  var result = metric(agent,metricName,query);
+  result.forEach(function(val) {
+    var port = topologyInterfaceToPort(val.agent,val.dataSource) || {};
+    if(port.node) val.node = port.node;
+    if(port.port) val.port = port.port;
+  });
+  return result;
+}
+
+function getLinkMetric(linkName,metricName) {
+  var result = topologyLinkMetric(linkName,metricName) || [];
+  result.forEach(function(val) {
+    var port = topologyInterfaceToPort(val.agent,val.dataSource) || {};
+    if(port.node) val.node = port.node;
+    if(port.port) val.port = port.port;
+  });
+  return result; 
+}
+
 setHttpHandler(function(req) {
   var result, address, path = req.path;
   if(!path || path.length === 0) throw "not_found";
@@ -130,15 +150,26 @@ setHttpHandler(function(req) {
           throw "bad_request";
       }
       break;
-    case 'metrics':
-      result = getMetrics();
+    case 'status':
+      result = getStatus();
       break;
     case 'locate':
-      address = req.query.address;
-      if(address && address.length === 1) {
-        result = locateAddress(address[0]);
-      } else {
-        throw "bad_request";
+      address = req.query.address || topologyLocatedHostMacs() || [];
+      result = address.reduce((acc,addr) => acc.concat(locateAddress(addr)), []);
+      break;
+    case 'metric':
+      if(path.length !== 4) throw "not_found";
+      switch(path[1]) {
+        case 'node':
+          address = topologyAgentForNode(path[2]);
+          if(!address) throw "not_found";
+          result = getNodeMetric(address,path[3],req.query);
+          break;
+        case 'link':
+          result = getLinkMetric(path[2],path[3]); 
+          break;
+        default:
+          throw 'not_found';
       }
       break;
     default: throw 'not_found';

@@ -1,7 +1,7 @@
 $(function() {
   var restPath = '../scripts/topology.js/';
   var topologyURL = restPath + 'topology/json';
-  var metricsURL = restPath + 'metrics/json';
+  var statusURL = restPath + 'status/json';
   var locateURL = restPath + 'locate/json';
 
   function setNav(target) {
@@ -41,7 +41,7 @@ $(function() {
   var m_links_unmonitored = $('#links-unmonitored').gauge({label:'Links Unmonitored', suffix: '', threshold: 1, maxValue: 1}).click(details);
   var m_links_down = $('#links-down').gauge({label:'Links Down', suffix: '', threshold: 1, maxValue: 1}).click(details);
 
-  function updateMetrics(metrics) {
+  function updateStatus(metrics) {
     m_nodes_total.gauge('update', {value: metrics.nodes.total});
     m_nodes_unmonitored.gauge('update', {value: metrics.nodes.total - metrics.nodes.monitored, maxValue: metrics.nodes.total}).data('details',metrics.nodes.details.unmonitored);
     m_nodes_no_flows.gauge('update', {value: metrics.nodes.noflows, maxValue: metrics.nodes.total}).data('details',metrics.nodes.details.noflows);
@@ -54,10 +54,11 @@ $(function() {
     event.preventDefault();
     $('#location').hide();
     var address = $.trim($('#networkAddress').removeClass('is-invalid').val());
+    var query = address ? { address: address} : null;
     $.ajax({
       url: locateURL,
       type: 'GET',
-      data: { address: address },
+      data: query,
       contentType: 'application/json',
       success: function(resp) {
         var rows;
@@ -106,18 +107,18 @@ $(function() {
     reader.readAsText(file);
   });
 
-  (function pollMetrics() {
+  (function pollStatus() {
     $.ajax({
-      url: metricsURL,
+      url: statusURL,
       dataType: 'json',
       success: function(data) {
-        updateMetrics(data);
+        updateStatus(data);
       },
       error: function() {
         $('.gauge').addClass('warn');
       },
       complete: function() {
-        setTimeout(pollMetrics, 5000);
+        setTimeout(pollStatus, 5000);
       },
       timeout: 60000
     });

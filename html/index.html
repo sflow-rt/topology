@@ -123,6 +123,19 @@
         <p>Enter a MAC address, IPv4 address, or IPv6 address and locate the address to an access switch and port.</p>
         <h4>Settings</h4>
         <p>Upload a topology file. <a href="https://sflow-rt.com/topology.php">Topology</a> describes the format used to represent topology.</p>
+        <h4>REST API</h4>
+        <p>The following REST API calls expose topology related metrics:</p>
+        <table class="table table-striped table-bordered table-sm table-responsive-md">
+          <thead class="thead-light"><tr><th>URL</th><th>Operations</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../scripts/topology.js/topology/json">scripts/topology.js/topology/json</a></td><td>GET, PUT, POST</td><td>Manage topology</td></tr>
+            <tr><td><a href="../scripts/topology.js/status/json">scripts/topology.js/status/json</a></td><td>GET</td><td>Get monitoring status</td></tr>
+            <tr><td><a href="../scripts/topology.js/locate/json">scripts/topology.js/locate/json</a></td><td>GET</td><td>Get all located addresses</td></tr>
+            <tr><td>scripts/topology.js/locate/json?address={address}</td><td>GET</td><td>Locate address (MAC, IPv4, IPv6)</td></tr>
+            <tr><td>scripts/topology.js/metric/node/{node}/{metric}/json</td><td>GET</td><td>Get metric for node</td></tr>
+            <tr><td>scripts/topology.js/metric/link/{link}/{metric}/json</td><td>GET</td><td>Get metric for link</td></tr>
+          </tbody>
+        </table>
       </section>
     </main>
     <footer class="footer page-footer border-top mt-3">
