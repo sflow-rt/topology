@@ -35,11 +35,14 @@ $(function() {
     }
   }
   var m_nodes_total = $('#nodes-total').gauge({label:'Nodes Total', suffix: '', threshold: 4000, maxValue: 5000, logScale:true });
-  var m_nodes_unmonitored = $('#nodes-unmonitored').gauge({label:'Nodes Unmonitored', suffix: '', threshold: 1, maxValue: 1}).click(details);
-  var m_nodes_no_flows = $('#nodes-no-flows').gauge({label:'Nodes No Flows', suffix: '', threshold: 1, maxValue: 1}).click(details);
+  var m_nodes_unmonitored = $('#nodes-unmonitored').gauge({label:'Nodes Unmonitored', suffix: '', threshold: 1}).click(details);
+  var m_nodes_no_flows = $('#nodes-no-flows').gauge({label:'Nodes No Flows', suffix: '', threshold: 1}).click(details);
   var m_links_total = $('#links-total').gauge({label:'Links Total', suffix: '', threshold: 8000, maxValue: 10000, logScale: true});
-  var m_links_unmonitored = $('#links-unmonitored').gauge({label:'Links Unmonitored', suffix: '', threshold: 1, maxValue: 1}).click(details);
-  var m_links_down = $('#links-down').gauge({label:'Links Down', suffix: '', threshold: 1, maxValue: 1}).click(details);
+  var m_links_unmonitored = $('#links-unmonitored').gauge({label:'Links Unmonitored', suffix: '', threshold: 1}).click(details);
+  var m_links_down = $('#links-down').gauge({label:'Links Down', suffix: '', threshold: 1}).click(details);
+  var m_traffic_bps = $('#traffic-bps').gauge({label:'Traffic', suffix: 'bps'});
+  var m_traffic_errors = $('#traffic-errors').gauge({label:'Errors', suffix: 'pps'});
+  var m_traffic_discards = $('#traffic-discards').gauge({label:'Discards', suffix: 'pps'}); 
 
   function updateStatus(metrics) {
     m_nodes_total.gauge('update', {value: metrics.nodes.total});
@@ -48,6 +51,11 @@ $(function() {
     m_links_total.gauge('update', {value: metrics.links.total});
     m_links_unmonitored.gauge('update', {value: metrics.links.total - metrics.links.monitored, maxValue: metrics.links.total}).data('details',metrics.links.details.unmonitored);
     m_links_down.gauge('update', {value: metrics.links.down, maxValue: metrics.links.total}).data('details',metrics.links.details.down);
+    m_traffic_bps.gauge('update', {value: metrics.traffic.bps, maxValue: metrics.traffic.speed});
+    var total_pps = metrics.traffic.pps+metrics.traffic.errors+metrics.traffic.discards;
+    var threshold = metrics.traffic.pps * 0.001;
+    m_traffic_errors.gauge('update',{value: metrics.traffic.errors, maxValue:total_pps, threshold:threshold});
+    m_traffic_discards.gauge('update',{value: metrics.traffic.discards, maxValue:total_pps, threshold:threshold});
   }
 
   $('#locateForm').submit(function( event ) {

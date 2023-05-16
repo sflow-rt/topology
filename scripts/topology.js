@@ -1,6 +1,6 @@
 // author: InMon Corp.
-// version: 1.2
-// date: 5/15/2023
+// version: 1.3
+// date: 5/16/2023
 // description: Persist Topology
 // copyright: Copyright (c) 2021-2023 InMon Corp. ALL RIGHTS RESERVED
 
@@ -34,8 +34,14 @@ setIntervalHandler(function(now) {
   }
 });
 
+function getMetric(res, idx, defVal) {
+  var val = defVal;
+  if(res && res.length && res.length > idx && res[idx].hasOwnProperty('metricValue')) val = res[idx].metricValue;
+  return val;
+} 
+
 function getStatus() {
-  var result = {links:{},nodes:{}};
+  var result = {links:{},nodes:{},traffic:{}};
   var links = topologyLinkNames() || [];
   result.links.total = links.length;
   result.links.monitored = 0;
@@ -83,6 +89,13 @@ function getStatus() {
       result.nodes.details.unmonitored.push(key);
     }
   });
+  var edge = metric('EDGE','sum:ifspeed,sum:ifinoctets,sum:ifinpkts',{iftype:['ethernetCsmacd']});
+  result.traffic.speed = getMetric(edge,0,0); 
+  result.traffic.bps = getMetric(edge,1,0) * 8;
+  result.traffic.pps = getMetric(edge,2,0);
+  var topo = metric('TOPOLOGY','sum:ifindiscards,sum:ifoutdiscards,sum:ifinerrors,sum:ifouterrors' ,{iftype:['ethernetCsmacd']});
+  result.traffic.discards = getMetric(topo,0,0) + getMetric(topo,1,0);
+  result.traffic.errors = getMetric(topo,2,0) + getMetric(topo,3,0);
   
   return result;
 }
@@ -110,26 +123,6 @@ function locateAddress(addr) {
   return [];
 }
 
-function getNodeMetric(agent,metricName,query) {
-  var result = metric(agent,metricName,query);
-  result.forEach(function(val) {
-    var port = topologyInterfaceToPort(val.agent,val.dataSource) || {};
-    if(port.node) val.node = port.node;
-    if(port.port) val.port = port.port;
-  });
-  return result;
-}
-
-function getLinkMetric(linkName,metricName) {
-  var result = topologyLinkMetric(linkName,metricName) || [];
-  result.forEach(function(val) {
-    var port = topologyInterfaceToPort(val.agent,val.dataSource) || {};
-    if(port.node) val.node = port.node;
-    if(port.port) val.port = port.port;
-  });
-  return result; 
-}
-
 const prometheus_prefix = (getSystemProperty('prometheus.metric.prefix') || 'sflow_') + 'topology_';
 
 function prometheusName(str) {
@@ -144,7 +137,11 @@ function prometheus() {
   result += prometheus_prefix+'nodes{status="unmonitored"} ' + (status.nodes.total - status.nodes.monitored) + '\n';
   result += prometheus_prefix+'nodes{status="noflows"} ' + status.nodes.noflows + '\n';
   result += prometheus_prefix+'nodes{status="flows"} ' + status.nodes.flows + '\n';
-
+  result += prometheus_prefix+'traffic_bps ' + status.traffic.bps + '\n';
+  result += prometheus_prefix+'traffic_speed ' + status.traffic.speed + '\n';
+  result += prometheus_prefix+'traffic_pps ' + status.traffic.pps + '\n';
+  result += prometheus_prefix+'traffic_discards ' + status.traffic.discards + '\n';
+  result += prometheus_prefix+'traffic_errors ' + status.traffic.errors + '\n';
   return result;
 }
 
@@ -176,21 +173,6 @@ setHttpHandler(function(req) {
     case 'locate':
       address = req.query.address || topologyLocatedHostMacs() || [];
       result = address.reduce((acc,addr) => acc.concat(locateAddress(addr)), []);
-      break;
-    case 'metric':
-      if(path.length !== 4) throw "not_found";
-      switch(path[1]) {
-        case 'node':
-          address = topologyAgentForNode(path[2]);
-          if(!address) throw "not_found";
-          result = getNodeMetric(address,path[3],req.query);
-          break;
-        case 'link':
-          result = getLinkMetric(path[2],path[3]); 
-          break;
-        default:
-          throw 'not_found';
-      }
       break;
     case 'prometheus':
       result = prometheus();

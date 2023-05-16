@@ -53,6 +53,11 @@
            <div class="col-md"><div id="links-unmonitored"></div></div>
            <div class="col-md"><div id="links-down"></div></div>
         </div>
+        <div class="row align-items-center">
+           <div class="col-md"><div id="traffic-bps"></div></div>
+           <div class="col-md"><div id="traffic-discards"></div></div>
+           <div class="col-md"><div id="traffic-errors"></div></div>
+        </div>
         <div class="modal fade" id="details-dialog" tabindex="-1" role="dialog">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -132,10 +137,10 @@
             <tr><td><a href="../scripts/topology.js/status/json">scripts/topology.js/status/json</a></td><td>GET</td><td>Get monitoring status</td></tr>
             <tr><td><a href="../scripts/topology.js/locate/json">scripts/topology.js/locate/json</a></td><td>GET</td><td>Get all located addresses</td></tr>
             <tr><td>scripts/topology.js/locate/json?address={address}</td><td>GET</td><td>Locate address (MAC, IPv4, IPv6)</td></tr>
-            <tr><td>scripts/topology.js/metric/node/{node}/{metric}/json</td><td>GET</td><td>Get metric for node</td></tr>
-            <tr><td>scripts/topology.js/metric/link/{link}/{metric}/json</td><td>GET</td><td>Get metric for link</td></tr>
+            <tr><td><a href="../scripts/topology.js/prometheus/txt">scripts/topology.js/prometheus/txt</a></td><td>GET</td><td>Prometheus format metrics</td></tr>
           </tbody>
         </table>
+        <p><a href="https://sflow-rt.com/topology.php#usage">Using Topology</a> describes additional topology related queries supported by sFlow-RT.</p>
       </section>
     </main>
     <footer class="footer page-footer border-top mt-3">
