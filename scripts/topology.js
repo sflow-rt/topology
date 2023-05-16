@@ -1,6 +1,6 @@
 // author: InMon Corp.
 // version: 1.2
-// date: 5/11/2023
+// date: 5/15/2023
 // description: Persist Topology
 // copyright: Copyright (c) 2021-2023 InMon Corp. ALL RIGHTS RESERVED
 
@@ -43,7 +43,7 @@ function getStatus() {
   result.links.down = 0;
   result.links.details = {unmonitored:[],links_down:[]};
   links.forEach(function(key) {
-    let link_metrics = topologyLinkMetric(key,'ifadminstatus,ifoperstatus');
+    var link_metrics = topologyLinkMetric(key,'ifadminstatus,ifoperstatus');
     if(link_metrics && link_metrics.length === 4) {
       if(link_metrics[0].agent && link_metrics[1].agent && link_metrics[2].agent && link_metrics[3].agent) {
         result.links.monitored++; 
@@ -59,7 +59,6 @@ function getStatus() {
       result.links.details.unmonitored.push(key);
     }
   });
-  result.links.total = links.length;
   var nodes = topologyNodeNames() || [];
   result.nodes.total = nodes.length;
   result.nodes.monitored = 0;
@@ -67,7 +66,7 @@ function getStatus() {
   result.nodes.noflows = 0;
   result.nodes.details = {unmonitored:[],noflows:[]};
   nodes.forEach(function(key) {
-    let agent = topologyAgentForNode(key);
+    var agent = topologyAgentForNode(key);
     if(agent) {
       let agentMetrics = agents([agent])[agent];
       if(agentMetrics) {
@@ -131,10 +130,31 @@ function getLinkMetric(linkName,metricName) {
   return result; 
 }
 
+const prometheus_prefix = (getSystemProperty('prometheus.metric.prefix') || 'sflow_') + 'topology_';
+
+function prometheusName(str) {
+  return str.replace(/[^a-zA-Z0-9_]/g,'_');
+}
+
+function prometheus() {
+  var status = getStatus();
+  var result  = prometheus_prefix+'links{status="unmonitored"} ' + (status.links.total - status.links.monitored) + '\n';
+  result += prometheus_prefix+'links{status="up"} ' + status.links.up + '\n';
+  result += prometheus_prefix+'links{status="down"} ' + status.links.down + '\n';
+  result += prometheus_prefix+'nodes{status="unmonitored"} ' + (status.nodes.total - status.nodes.monitored) + '\n';
+  result += prometheus_prefix+'nodes{status="noflows"} ' + status.nodes.noflows + '\n';
+  result += prometheus_prefix+'nodes{status="flows"} ' + status.nodes.flows + '\n';
+
+  return result;
+}
+
 setHttpHandler(function(req) {
   var result, address, path = req.path;
   if(!path || path.length === 0) throw "not_found";
-   
+  if(path.length === 1 && 'prometheus' === path[0] && 'txt' === req.format) {
+    return prometheus();
+  }
+  if('json' !== req.format) throw 'not_found'; 
   switch(path[0]) {
     case 'topology':
       switch(req.method) {
@@ -171,6 +191,9 @@ setHttpHandler(function(req) {
         default:
           throw 'not_found';
       }
+      break;
+    case 'prometheus':
+      result = prometheus();
       break;
     default: throw 'not_found';
   } 
