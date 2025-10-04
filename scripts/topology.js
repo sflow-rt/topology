@@ -1,8 +1,8 @@
 // author: InMon Corp.
-// version: 1.3
-// date: 5/16/2023
+// version: 1.4
+// date: 10/3/2025
 // description: Persist Topology
-// copyright: Copyright (c) 2021-2023 InMon Corp. ALL RIGHTS RESERVED
+// copyright: Copyright (c) 2021-2025 InMon Corp. ALL RIGHTS RESERVED
 
 var version = -1;
 
@@ -100,6 +100,30 @@ function getStatus() {
   return result;
 }
 
+function getAgents() {
+  var nodes = topologyNodeNames() || [];
+  var topo = {};
+  nodes.forEach(function(key) {
+    var agent = topologyAgentForNode(key);
+    if(agent) {
+      topo[key] = agent;
+    } 
+  });
+  return topo;
+}
+
+function getUnknownAgents() {
+  var nodes = topologyNodeNames() || [];
+  var topo = new Set();
+  nodes.forEach(function(key) {
+    var agent = topologyAgentForNode(key);
+    if(agent) {
+      topo.add(agent);
+    }
+  });  
+  return Object.keys(agents()).filter((agent) => !topo.has(agent));
+}
+
 function locateAddress(addr) {
   if(/^([0-9]{1,3}\.){3}[\d]{1,3}$/.test(addr)) {
     return topologyLocateHostIP(addr);
@@ -169,6 +193,12 @@ setHttpHandler(function(req) {
       break;
     case 'status':
       result = getStatus();
+      break;
+    case 'agents':
+      result = getAgents();
+      break;
+    case 'unknown':
+      result = getUnknownAgents();
       break;
     case 'locate':
       address = req.query.address || topologyLocatedHostMacs() || [];
