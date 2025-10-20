@@ -47,7 +47,7 @@ function getStatus() {
   result.links.monitored = 0;
   result.links.up = 0;
   result.links.down = 0;
-  result.links.details = {unmonitored:[],links_down:[]};
+  result.links.details = {unmonitored:[],down:[]};
   links.forEach(function(key) {
     var link_metrics = topologyLinkMetric(key,'ifadminstatus,ifoperstatus');
     if(link_metrics && link_metrics.length === 4) {
